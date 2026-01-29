@@ -1,0 +1,45 @@
+import pandas as pd
+
+df = pd.read_csv("/content/balanced_dataset.csv")
+df.head()
+df['Class'].value_counts()
+X = df.drop('Class', axis=1)
+y = df['Class']
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42
+)
+from sklearn.linear_model import LogisticRegression
+
+lr = LogisticRegression(max_iter=1000)
+lr.fit(X_train, y_train)
+from sklearn.metrics import classification_report
+
+y_pred_lr = lr.predict(X_test)
+print(classification_report(y_test, y_pred_lr))
+
+from sklearn.ensemble import RandomForestClassifier
+
+rf = RandomForestClassifier(
+    n_estimators=100,
+    class_weight='balanced',
+    random_state=42
+)
+
+rf.fit(X_train, y_train)
+y_pred_rf = rf.predict(X_test)
+print(classification_report(y_test, y_pred_rf))
+import matplotlib.pyplot as plt
+
+importances = rf.feature_importances_
+features = X.columns
+
+plt.figure(figsize=(10,5))
+plt.bar(features, importances)
+plt.xticks(rotation=90)
+plt.title("Feature Importance")
+plt.show()
+import joblib
+
+joblib.dump(rf, "fraud_detection_model.pkl")
